@@ -1,0 +1,14 @@
+infrastructureDefinition:
+  name: Test
+  identifier: Test
+  orgIdentifier: default
+  projectIdentifier: Automate
+  environmentRef: prod
+  deploymentType: Kubernetes
+  type: KubernetesDirect
+  spec:
+    connectorRef: Test
+    namespace: default
+    releaseName: release-<+INFRA_KEY_SHORT_ID>
+  allowSimultaneousDeployments: false
+  scopedServices: []
