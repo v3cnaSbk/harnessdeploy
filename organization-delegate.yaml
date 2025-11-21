@@ -23,11 +23,11 @@ roleRef:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: deploy-delegate-account-token
+  name: kubernetes-delegate-account-token
   namespace: harness-delegate-ng
 type: Opaque
 data:
-  DELEGATE_TOKEN: "MmEyZjY0ZTZmYzI3NDFmYzJlYzE1NTFlOTk0Yzc1Mjc="
+  DELEGATE_TOKEN: "NzY3MzY4NDZjYTBjYjVhMGI4MjRjMWViZmVmNzhjNGU="
 
 ---
 
@@ -38,19 +38,19 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    harness.io/name: deploy-delegate
-  name: deploy-delegate
+    harness.io/name: kubernetes-delegate
+  name: kubernetes-delegate
   namespace: harness-delegate-ng
 spec:
   replicas: 1
   minReadySeconds: 120
   selector:
     matchLabels:
-      harness.io/name: deploy-delegate
+      harness.io/name: kubernetes-delegate
   template:
     metadata:
       labels:
-        harness.io/name: deploy-delegate
+        harness.io/name: kubernetes-delegate
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "3460"
@@ -91,7 +91,7 @@ spec:
           failureThreshold: 15
         envFrom:
         - secretRef:
-            name: deploy-delegate-account-token
+            name: kubernetes-delegate-account-token
         env:
         - name: JAVA_OPTS
           value: "-Xms64M"
@@ -102,7 +102,7 @@ spec:
         - name: DEPLOY_MODE
           value: KUBERNETES
         - name: DELEGATE_NAME
-          value: deploy-delegate
+          value: kubernetes-delegate
         - name: DELEGATE_TYPE
           value: "KUBERNETES"
         - name: DELEGATE_NAMESPACE
@@ -129,15 +129,15 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-   name: deploy-delegate-hpa
+   name: kubernetes-delegate-hpa
    namespace: harness-delegate-ng
    labels:
-       harness.io/name: deploy-delegate
+       harness.io/name: kubernetes-delegate
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: deploy-delegate
+    name: kubernetes-delegate
   minReplicas: 1
   maxReplicas: 1
   metrics:
@@ -174,7 +174,7 @@ rules:
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: deploy-delegate-upgrader-cronjob
+  name: kubernetes-delegate-upgrader-cronjob
   namespace: harness-delegate-ng
 subjects:
   - kind: ServiceAccount
@@ -198,24 +198,24 @@ metadata:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: deploy-delegate-upgrader-token
+  name: kubernetes-delegate-upgrader-token
   namespace: harness-delegate-ng
 type: Opaque
 data:
-  UPGRADER_TOKEN: "MmEyZjY0ZTZmYzI3NDFmYzJlYzE1NTFlOTk0Yzc1Mjc="
+  UPGRADER_TOKEN: "NzY3MzY4NDZjYTBjYjVhMGI4MjRjMWViZmVmNzhjNGU="
 
 ---
 
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: deploy-delegate-upgrader-config
+  name: kubernetes-delegate-upgrader-config
   namespace: harness-delegate-ng
 data:
   config.yaml: |
     mode: Delegate
     dryRun: false
-    workloadName: deploy-delegate
+    workloadName: kubernetes-delegate
     namespace: harness-delegate-ng
     containerName: delegate
     delegateConfig:
@@ -228,8 +228,8 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   labels:
-    harness.io/name: deploy-delegate-upgrader-job
-  name: deploy-delegate-upgrader-job
+    harness.io/name: kubernetes-delegate-upgrader-job
+  name: kubernetes-delegate-upgrader-job
   namespace: harness-delegate-ng
 spec:
   schedule: "0 */1 * * *"
@@ -247,12 +247,12 @@ spec:
             imagePullPolicy: Always
             envFrom:
             - secretRef:
-                name: deploy-delegate-upgrader-token
+                name: kubernetes-delegate-upgrader-token
             volumeMounts:
               - name: config-volume
                 mountPath: /etc/config
           volumes:
             - name: config-volume
               configMap:
-                name: deploy-delegate-upgrader-config
+                name: kubernetes-delegate-upgrader-config
 
